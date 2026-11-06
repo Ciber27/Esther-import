@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eee6df">
+<title>ESTHER IMPORT | Moda para toda la familia</title>
+
+<style>
+:root{--fondo:#f8f5f1;--crema:#eee6df;--oscuro:#292522;--dorado:#a77b4b;--blanco:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--oscuro);font-family:Arial,sans-serif}
+header{background:var(--crema);padding:22px 14px;text-align:center;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #0001}
+header h1{margin:0;font-family:Georgia,serif;letter-spacing:3px;font-size:27px}
+header p{margin:6px 0 0;font-size:11px;letter-spacing:3px}
+.barra{padding:12px;display:flex;gap:8px;max-width:900px;margin:auto}
+input,select,textarea,button{font:inherit}
+input,select,textarea{padding:11px;border:1px solid #ddd;border-radius:8px;width:100%;background:white}
+button{border:0;border-radius:8px;padding:11px 14px;background:var(--oscuro);color:white;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.sec{background:var(--crema);color:var(--oscuro)}
+button.dorado{background:var(--dorado)}
+.categorias{display:flex;gap:8px;overflow:auto;padding:4px 12px 14px;max-width:900px;margin:auto}
+.categorias button{white-space:nowrap}
+main{max-width:1000px;margin:auto;padding:12px}
+h2{font-family:Georgia,serif;font-size:21px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.producto{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #0000000c}
+.producto img{width:100%;height:190px;object-fit:cover;background:#eee;display:block;cursor:pointer}
+.info{padding:10px}
+.info h3{font-size:15px;margin:3px 0 7px}
+.precio{font-weight:bold;font-size:16px}
+.anterior{text-decoration:line-through;color:#888;font-size:12px;margin-left:5px}
+.etiqueta{font-size:10px;color:#9b6333;font-weight:bold}
+.info button{width:100%;margin-top:9px}
+.vacio{text-align:center;padding:40px 10px;color:#777;grid-column:1/-1}
+.pie{text-align:center;padding:25px;color:#777;font-size:12px}
+.modal{display:none;position:fixed;inset:0;background:#0009;z-index:20;overflow:auto;padding:16px}
+.contenido{background:white;border-radius:14px;max-width:600px;margin:25px auto;padding:16px}
+.cerrar{float:right;background:#eee;color:#333}
+.fotos{display:flex;gap:8px;overflow:auto;margin:12px 0}
+.fotos img{width:110px;height:110px;object-fit:cover;border-radius:8px;cursor:pointer}
+.grande{width:100%;height:300px;object-fit:contain;background:#f3f0ed}
+.campo{margin:10px 0}
+.campo label{display:block;font-size:13px;margin-bottom:5px;font-weight:bold}
+.adminlista{border-top:1px solid #eee;padding:10px 0;display:flex;gap:10px;align-items:center}
+.adminlista img{width:55px;height:60px;object-fit:cover;border-radius:6px}
+.adminlista div{flex:1;min-width:0}
+.adminlista strong{font-size:13px}
+.acciones{display:flex;gap:5px}
+.acciones button{padding:8px;font-size:12px}
+#carritoLista .linea{padding:10px 0;border-bottom:1px solid #eee}
+#carritoLista button{padding:5px 9px}
+.btnAdmin{position:fixed;bottom:12px;right:12px;border-radius:50%;width:48px;height:48px;background:#292522;z-index:10;padding:0}
+.estado{font-size:13px;padding:9px;background:#f2eee9;border-radius:8px;margin:10px 0}
+#previsualizacion img{width:110px;height:110px;object-fit:cover;border-radius:8px}
+.mini{position:relative;flex:none}
+.mini button{position:absolute;right:3px;top:3px;padding:4px 8px;background:#a33}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.producto img{height:240px}}
+@media(min-width:850px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+<header>
+<h1>ESTHER IMPORT</h1>
+<p>MODA PARA TODA LA FAMILIA</p>
+</header>
+
+<div class="barra">
+<input id="buscar" placeholder="Buscar ropa..." oninput="mostrarProductos()">
+<button onclick="abrirCarrito()">🛒 <span id="cantidadCarrito">0</span></button>
+</div>
+
+<nav class="categorias">
+<button class="dorado" data-cat="Todos" onclick="filtrar('Todos')">Todos</button>
+<button class="sec" data-cat="Mujeres" onclick="filtrar('Mujeres')">Mujeres</button>
+<button class="sec" data-cat="Hombres" onclick="filtrar('Hombres')">Hombres</button>
+<button class="sec" data-cat="Niños" onclick="filtrar('Niños')">Niños</button>
+<button class="sec" data-cat="Otros" onclick="filtrar('Otros')">Otros</button>
+</nav>
+
+<main>
+<h2>✨ Nuestra colección</h2>
+<div id="productos" class="grid">
+<div class="vacio">Cargando colección...</div>
+</div>
+</main>
+
+<div class="pie">ESTHER IMPORT · Moda para toda la familia</div>
+
+<!-- DETALLE -->
+<div class="modal" id="detalle">
+<div class="contenido">
+<button class="cerrar" onclick="cerrar('detalle')">✕</button>
+<div id="detalleContenido"></div>
+</div>
+</div>
+
+<!-- ADMINISTRADOR -->
+<div class="modal" id="admin">
+<div class="contenido">
+<button class="cerrar" onclick="cerrar('admin')">✕</button>
+<h2>Administrar tienda</h2>
+
+<div id="login">
+<p>Inicia sesión con tu cuenta de administrador.</p>
+<div class="campo">
+<label>Correo electrónico</label>
+<input id="correoAdmin" type="email" autocomplete="username">
+</div>
+<div class="campo">
+<label>Contraseña</label>
+<input id="claveAdmin" type="password" autocomplete="current-password">
+</div>
+<button class="dorado" id="btnEntrar" onclick="entrarAdmin()">Iniciar sesión</button>
+<p id="errorLogin" class="estado"></p>
+</div>
+
+<div id="zonaAdmin" style="display:none">
+<div class="estado" id="estadoAdmin">Administrador conectado.</div>
+<div class="estado">👥 Visitantes totales: <b id="contadorVisitas">—</b> <button class="sec" style="padding:4px 10px;margin-left:8px" onclick="cargarVisitas()">Actualizar</button></div>
+
+<h3 id="tituloFormulario">Agregar producto</h3>
+<input type="hidden" id="pId">
+
+<div class="campo"><label>Nombre</label><input id="pNombre"></div>
+<div class="campo"><label>Código</label><input id="pCodigo"></div>
+
+<div class="campo">
+<label>Categoría</label>
+<select id="pCategoria">
+<option>Mujeres</option>
+<option>Hombres</option>
+<option>Niños</option>
+<option>Otros</option>
+</select>
+</div>
+
+<div class="campo">
+<label>Subcategoría</label>
+<input id="pSubcategoria" placeholder="Ej. Polos, pantalones, vestidos">
+</div>
+
+<div class="campo"><label>Precio</label><input id="pPrecio" type="number" min="0" step="0.01"></div>
+<div class="campo"><label>Precio de oferta (opcional)</label><input id="pOferta" type="number" min="0" step="0.01"></div>
+<div class="campo"><label>Descripción</label><textarea id="pDescripcion"></textarea></div>
+<div class="campo"><label>Tallas (separadas por coma)</label><input id="pTallas" placeholder="S, M, L, XL"></div>
+<div class="campo"><label>Colores (separados por coma)</label><input id="pColores" placeholder="Negro, blanco, azul"></div>
+
+<div class="campo">
+<label>Fotografías (puedes seleccionar varias)</label>
+<input id="pFotos" type="file" accept="image/*" multiple>
+</div>
+
+<div id="previsualizacion" class="fotos"></div>
+<p id="fotosGuardadas"></p>
+
+<div class="campo">
+<label><input type="checkbox" id="pDestacado" style="width:auto"> Producto destacado</label>
+</div>
+<div class="campo">
+<label><input type="checkbox" id="pDisponible" checked style="width:auto"> Disponible</label>
+</div>
+
+<button class="dorado" id="btnGuardar" onclick="guardarProducto()">Guardar producto</button>
+<button class="sec" onclick="limpiarFormulario()">Limpiar</button>
+
+<hr>
+<h3>Productos guardados</h3>
+<div id="listaAdmin"></div>
+<button class="sec" onclick="salirAdmin()">Cerrar sesión</button>
+</div>
+</div>
+</div>
+
+<!-- CARRITO -->
+<div class="modal" id="carrito">
+<div class="contenido">
+<button class="cerrar" onclick="cerrar('carrito')">✕</button>
+<h2>Mi carrito</h2>
+<div id="carritoLista"></div>
+<h3 id="totalCarrito"></h3>
+<div class="campo"><label>Tu nombre</label><input id="nombreCliente"></div>
+<button class="dorado" onclick="enviarWhatsApp()">Pedir por WhatsApp</button>
+</div>
+</div>
+
+<button class="btnAdmin" onclick="abrirAdmin()" aria-label="Administrar">⚙️</button>
+
+<script>
+// ========================================
+// CONFIGURACIÓN SUPABASE
+// ========================================
+
+const SUPABASE_URL = "https://xkobhfdeyxcsyjklsxjl.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_rrDmzwr6-zz23-bYp5n0xw_0gtKSQKE";
+
+const BUCKET = "productos";
+
+const WHATSAPP = "18094956310"; // Coloca tu número con código de país, sin + ni espacios.
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// ========================================
+// VARIABLES
+// ========================================
+
+const $ = id => document.getElementById(id);
+
+let productos = [];
+let carrito = [];
+let categoriaActual = "Todos";
+let fotosGuardadas = [];
+let fotosNuevas = [];
+let usuarioAdmin = null;
+
+const CART_KEY = "estherImport_carrito_v1";
+
+function leerCarrito(){
+    try {
+        const datos = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+        return Array.isArray(datos) ? datos : [];
+    } catch(e) {
+        return [];
+    }
+}
+
+carrito = leerCarrito();
+
+function guardarCarrito(){
+    localStorage.setItem(CART_KEY, JSON.stringify(carrito));
+}
+
+function dinero(n){
+    return "RD$ " + Number(n || 0).toLocaleString("es-DO");
+}
+
+function escapar(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+    }[c]));
+}
+
+// ========================================
+// CARGAR PRODUCTOS DESDE SUPABASE
+// ========================================
+
+async function cargarProductos(){
+    $("productos").innerHTML =
+        '<div class="vacio">Cargando colección...</div>';
+
+    try {
+        const {data:lista, error} = await db
+            .from("productos")
+            .select("*")
+            .order("created_at", {ascending:false});
+
+        if(error) throw error;
+
+        const {data:imagenes, error:errorFotos} = await db
+            .from("producto_imagenes")
+            .select("*")
+            .order("orden", {ascending:true});
+
+        if(errorFotos) throw errorFotos;
+
+        productos = (lista || []).map(p => ({
+            ...p,
+            fotos: (imagenes || [])
+                .filter(f => f.producto_id === p.id)
+                .map(f => ({
+                    id:f.id,
+                    url:f.imagen_url,
+                    path:f.storage_path,
+                    orden:f.orden
+                }))
+        }));
+
+        carrito = carrito.filter(i =>
+            productos.some(p => p.id === i.id)
+        );
+
+        guardarCarrito();
+        mostrarProductos();
+        actualizarCarrito();
+
+    } catch(error) {
+        console.error(error);
+        $("productos").innerHTML =
+            '<div class="vacio">No se pudieron cargar los productos. Comprueba tu conexión.</div>';
+    }
+}
+
+// ========================================
+// MOSTRAR PRODUCTOS
+// ========================================
+
+function filtrar(c){
+    categoriaActual = c;
+
+    document.querySelectorAll(".categorias button").forEach(b => {
+        b.className = b.dataset.cat === c ? "dorado" : "sec";
+    });
+
+    mostrarProductos();
+}
+
+function mostrarProductos(){
+    const texto = $("buscar").value.toLowerCase().trim();
+
+    const lista = productos.filter(p =>
+        (categoriaActual === "Todos" || p.categoria === categoriaActual) &&
+        p.disponible &&
+        `${p.nombre || ""} ${p.codigo || ""} ${p.subcategoria || ""}`
+            .toLowerCase().includes(texto)
+    );
+
+    $("productos").innerHTML = lista.length
+        ? lista.map(p => {
+            const foto = p.fotos?.[0]?.url || "";
+            return `
+            <article class="producto">
+                <img src="${escapar(foto)}"
+                     alt="${escapar(p.nombre)}"
+                     onclick="verProducto('${p.id}')">
+                <div class="info">
+                    ${p.destacado ? '<div class="etiqueta">DESTACADO</div>' : ''}
+                    <h3>${escapar(p.nombre)}</h3>
+                    <div class="precio">${dinero(p.oferta || p.precio)}</div>
+                    ${Number(p.oferta) > 0
+                        ? `<span class="anterior">${dinero(p.precio)}</span>`
+                        : ''}
+                    <button onclick="verProducto('${p.id}')">Ver producto</button>
+                </div>
+            </article>`;
+        }).join("")
+        : '<div class="vacio">No hay productos disponibles.</div>';
+}
+
+// ========================================
+// DETALLE DEL PRODUCTO
+// ========================================
+
+function verProducto(id){
+    const p = productos.find(x => x.id === id);
+    if(!p) return;
+
+    const fotos = p.fotos || [];
+
+    $("detalleContenido").innerHTML = `
+        <h2>${escapar(p.nombre)}</h2>
+
+        <img class="grande" id="fotoGrande"
+             src="${escapar(fotos[0]?.url || '')}"
+             alt="${escapar(p.nombre)}">
+
+        <div class="fotos">
+            ${fotos.map(f => `
+                <img src="${escapar(f.url)}"
+                     alt=""
+                     onclick="document.getElementById('fotoGrande').src=this.src">
+            `).join("")}
+        </div>
+
+        <p>${escapar(p.descripcion)}</p>
+
+        <p><b>Precio:</b> ${dinero(p.oferta || p.precio)}
+        ${Number(p.oferta) > 0
+            ? `<span class="anterior">${dinero(p.precio)}</span>`
+            : ''}</p>
+
+        <p><b>Tallas:</b> ${escapar((p.tallas || []).join(", ") || "No especificadas")}</p>
+        <p><b>Colores:</b> ${escapar((p.colores || []).join(", ") || "No especificados")}</p>
+
+        <div class="campo">
+            <label>Seleccionar talla</label>
+            <select id="tallaElegida">
+                <option value="">Sin especificar</option>
+                ${(p.tallas || []).map(t => `<option value="${escapar(t)}">${escapar(t)}</option>`).join("")}
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Seleccionar color</label>
+            <select id="colorElegido">
+                <option value="">Sin especificar</option>
+                ${(p.colores || []).map(c => `<option value="${escapar(c)}">${escapar(c)}</option>`).join("")}
+            </select>
+        </div>
+
+        <button class="dorado" onclick="agregarCarrito('${p.id}')">
+            Agregar al carrito
+        </button>
+    `;
+
+    $("detalle").style.display = "block";
+}
+
+// ========================================
+// CARRITO
+// ========================================
+
+function agregarCarrito(id){
+    const talla = $("tallaElegida").value;
+    const color = $("colorElegido").value;
+
+    carrito.push({id,talla,color});
+    guardarCarrito();
+    actualizarCarrito();
+    cerrar("detalle");
+}
+
+function actualizarCarrito(){
+    $("cantidadCarrito").textContent = carrito.length;
+}
+
+function abrirCarrito(){
+    $("carrito").style.display = "block";
+    dibujarCarrito();
+}
+
+function dibujarCarrito(){
+    let total = 0;
+
+    $("carritoLista").innerHTML = carrito.map((item,i) => {
+        const p = productos.find(x => x.id === item.id);
+        if(!p) return "";
+
+        const precio = Number(p.oferta || p.precio);
+        total += precio;
+
+        const detalles = [
+            dinero(precio),
+            item.talla,
+            item.color
+        ].filter(Boolean).map(escapar).join(" · ");
+
+        return `
+        <div class="linea">
+            <b>${escapar(p.nombre)}</b><br>
+            ${detalles}
+            <button class="sec" onclick="quitarCarrito(${i})">Quitar</button>
+        </div>`;
+    }).join("") || "Tu carrito está vacío.";
+
+    $("totalCarrito").textContent = "Total: " + dinero(total);
+}
+
+function quitarCarrito(i){
+    carrito.splice(i,1);
+    guardarCarrito();
+    actualizarCarrito();
+    dibujarCarrito();
+}
+
+function enviarWhatsApp(){
+    if(!carrito.length) return alert("Tu carrito está vacío.");
+    if(!WHATSAPP) return alert("Falta configurar el número de WhatsApp.");
+
+    const nombre = $("nombreCliente").value.trim();
+    if(!nombre) return alert("Escribe tu nombre.");
+
+    let total = 0;
+    let mensaje = "Hola, quiero hacer este pedido en ESTHER IMPORT.\nNombre: " + nombre + "\n";
+
+    carrito.forEach(item => {
+        const p = productos.find(x => x.id === item.id);
+        if(!p) return;
+
+        const precio = Number(p.oferta || p.precio);
+        total += precio;
+
+        mensaje += `\n${p.nombre} - ${dinero(precio)}\nTalla: ${item.talla || "No indicada"}\nColor: ${item.color || "No indicado"}\n`;
+    });
+
+    mensaje += "\nTOTAL: " + dinero(total);
+
+    window.open(
+        "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(mensaje),
+        "_blank"
+    );
+}
+
+// ========================================
+// AUTENTICACIÓN ADMINISTRADOR
+// ========================================
+
+function abrirAdmin(){
+    $("admin").style.display = "block";
+    revisarSesion();
+}
+
+async function revisarSesion(){
+    const {data,error} = await db.auth.getSession();
+
+    if(error) {
+        $("errorLogin").textContent = error.message;
+        return;
+    }
+
+    if(data.session) {
+        await comprobarAdministrador(data.session.user);
+    }
+}
+
+async function comprobarAdministrador(usuario){
+    const {data,error} = await db
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id",usuario.id)
+        .maybeSingle();
+
+    if(error || !data){
+        $("login").style.display = "block";
+        $("zonaAdmin").style.display = "none";
+        $("errorLogin").textContent =
+            "Esta cuenta no tiene permisos de administrador.";
+        await db.auth.signOut();
+        return false;
+    }
+
+    usuarioAdmin = usuario;
+
+    $("login").style.display = "none";
+    $("zonaAdmin").style.display = "block";
+    $("errorLogin").textContent = "";
+    $("estadoAdmin").textContent = "Sesión iniciada: " + usuario.email;
+
+    await listarAdmin();
+    cargarVisitas();
+    return true;
+}
+
+async function entrarAdmin(){
+    const email = $("correoAdmin").value.trim();
+    const password = $("claveAdmin").value;
+
+    if(!email || !password){
+        return alert("Escribe tu correo y contraseña.");
+    }
+
+    $("btnEntrar").disabled = true;
+    $("errorLogin").textContent = "Verificando acceso...";
+
+    try {
+        const {data,error} = await db.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if(error) throw error;
+
+        const correcto = await comprobarAdministrador(data.user);
+
+        if(correcto) $("claveAdmin").value = "";
+
+    } catch(error) {
+        $("errorLogin").textContent = "No se pudo iniciar sesión: " + error.message;
+    } finally {
+        $("btnEntrar").disabled = false;
+    }
+}
+
+async function salirAdmin(){
+    const {error} = await db.auth.signOut();
+
+    if(error) return alert(error.message);
+
+    usuarioAdmin = null;
+    limpiarFormulario();
+
+    $("login").style.display = "block";
+    $("zonaAdmin").style.display = "none";
+    $("correoAdmin").value = "";
+    $("claveAdmin").value = "";
+    $("errorLogin").textContent = "Sesión cerrada.";
+}
+
+// ========================================
+// FOTOGRAFÍAS
+// ========================================
+
+function comprimirFoto(file){
+    return new Promise((resolve,reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+
+        img.onload = () => {
+            const max = 1400;
+            const escala = Math.min(1,max / Math.max(img.width,img.height));
+
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(img.width * escala);
+            canvas.height = Math.round(img.height * escala);
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img,0,0,canvas.width,canvas.height);
+
+            URL.revokeObjectURL(url);
+
+            canvas.toBlob(blob => {
+                if(!blob) return reject(new Error("No se pudo comprimir la foto."));
+                resolve(blob);
+            },"image/jpeg",0.78);
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("No se pudo leer una fotografía."));
+        };
+
+        img.src = url;
+    });
+}
+
+$("pFotos").addEventListener("change",async e => {
+    const archivos = Array.from(e.target.files || []);
+
+    if(!archivos.length) return;
+
+    $("fotosGuardadas").textContent = "Procesando " + archivos.length + " foto(s)...";
+
+    let agregadas = 0;
+    const errores = [];
+
+    for(const archivo of archivos){
+        try {
+            const blob = await comprimirFoto(archivo);
+            fotosNuevas.push({
+                blob,
+                preview:URL.createObjectURL(blob)
+            });
+            agregadas++;
+        } catch(error) {
+            errores.push((archivo.name || "foto") + ": " + error.message);
+        }
+    }
+
+    mostrarPrevisualizacion();
+
+    if(errores.length){
+        alert("No se pudieron cargar " + errores.length + " foto(s):\n" + errores.join("\n"));
+    }
+
+    e.target.value = "";
+});
+
+function mostrarPrevisualizacion(){
+    const antiguas = fotosGuardadas.map((f,i) => `
+        <div class="mini">
+            <img src="${escapar(f.url)}" alt="">
+            <button type="button" onclick="quitarFotoGuardada(${i})">✕</button>
+        </div>
+    `).join("");
+
+    const nuevas = fotosNuevas.map((f,i) => `
+        <div class="mini">
+            <img src="${f.preview}" alt="">
+            <button type="button" onclick="quitarFotoNueva(${i})">✕</button>
+        </div>
+    `).join("");
+
+    $("previsualizacion").innerHTML = antiguas + nuevas;
+
+    $("fotosGuardadas").textContent =
+        "Fotos existentes: " + fotosGuardadas.length +
+        " · Fotos nuevas: " + fotosNuevas.length;
+}
+
+function quitarFotoNueva(i){
+    URL.revokeObjectURL(fotosNuevas[i].preview);
+    fotosNuevas.splice(i,1);
+    mostrarPrevisualizacion();
+}
+
+function quitarFotoGuardada(i){
+    fotosGuardadas.splice(i,1);
+    mostrarPrevisualizacion();
+}
+
+// ========================================
+// GUARDAR PRODUCTO EN SUPABASE
+// ========================================
+
+async function guardarProducto(){
+    if(!usuarioAdmin) return alert("Inicia sesión primero.");
+
+    const nombre = $("pNombre").value.trim();
+    const precio = Number($("pPrecio").value);
+    const oferta = Number($("pOferta").value) || 0;
+
+    if(!nombre || !Number.isFinite(precio) || precio <= 0){
+        return alert("Escribe el nombre y un precio válido.");
+    }
+
+    if(oferta < 0 || oferta >= precio && oferta !== 0){
+        return alert("El precio de oferta debe ser menor que el precio normal.");
+    }
+
+    if(!fotosGuardadas.length && !fotosNuevas.length){
+        return alert("Selecciona por lo menos una fotografía.");
+    }
+
+    const id = $("pId").value;
+
+    const datos = {
+        nombre,
+        codigo:$("pCodigo").value.trim(),
+        categoria:$("pCategoria").value,
+        subcategoria:$("pSubcategoria").value.trim(),
+        precio,
+        oferta,
+        descripcion:$("pDescripcion").value.trim(),
+        tallas:$("pTallas").value.split(",").map(x => x.trim()).filter(Boolean),
+        colores:$("pColores").value.split(",").map(x => x.trim()).filter(Boolean),
+        destacado:$("pDestacado").checked,
+        disponible:$("pDisponible").checked,
+        updated_at:new Date().toISOString()
+    };
+
+    $("btnGuardar").disabled = true;
+    $("estadoAdmin").textContent = "Guardando producto y fotografías...";
+
+    try {
+        let productoId = id;
+
+        if(id){
+            const {error} = await db
+                .from("productos")
+                .update(datos)
+                .eq("id",id);
+
+            if(error) throw error;
+        } else {
+            const {data,error} = await db
+                .from("productos")
+                .insert(datos)
+                .select("id")
+                .single();
+
+            if(error) throw error;
+            productoId = data.id;
+        }
+
+        // Eliminar de Storage y de la tabla las fotos retiradas.
+        const {data:anteriores,error:errorAnteriores} = await db
+            .from("producto_imagenes")
+            .select("*")
+            .eq("producto_id",productoId);
+
+        if(errorAnteriores) throw errorAnteriores;
+
+        const conservar = new Set(fotosGuardadas.map(f => f.id));
+
+        const quitar = (anteriores || []).filter(f => !conservar.has(f.id));
+
+        if(quitar.length){
+            const rutas = quitar.map(f => f.storage_path).filter(Boolean);
+
+            if(rutas.length){
+                const {error} = await db.storage
+                    .from(BUCKET)
+                    .remove(rutas);
+
+                if(error) throw error;
+            }
+
+            const ids = quitar.map(f => f.id);
+
+            const {error} = await db
+                .from("producto_imagenes")
+                .delete()
+                .in("id",ids);
+
+            if(error) throw error;
+        }
+
+        // Subir fotografías nuevas.
+        for(let i=0;i<fotosNuevas.length;i++){
+            const foto = fotosNuevas[i];
+            const ruta = productoId + "/" + crypto.randomUUID() + ".jpg";
+
+            const {error:subidaError} = await db.storage
+                .from(BUCKET)
+                .upload(ruta,foto.blob,{
+                    contentType:"image/jpeg",
+                    upsert:false
+                });
+
+            if(subidaError) throw subidaError;
+
+            const {data:urlData} = db.storage
+                .from(BUCKET)
+                .getPublicUrl(ruta);
+
+            const {error:registroError} = await db
+                .from("producto_imagenes")
+                .insert({
+                    producto_id:productoId,
+                    storage_path:ruta,
+                    imagen_url:urlData.publicUrl,
+                    orden:fotosGuardadas.length+i
+                });
+
+            if(registroError){
+                await db.storage.from(BUCKET).remove([ruta]);
+                throw registroError;
+            }
+        }
+
+        await cargarProductos();
+
+        limpiarFormulario();
+        await listarAdmin();
+
+        $("estadoAdmin").textContent = "Producto guardado correctamente.";
+        alert("Producto guardado en Supabase.");
+
+    } catch(error) {
+        console.error(error);
+        $("estadoAdmin").textContent = "Error: " + error.message;
+        alert("No se pudo completar el guardado: " + error.message);
+    } finally {
+        $("btnGuardar").disabled = false;
+    }
+}
+
+// ========================================
+// LIMPIAR FORMULARIO
+// ========================================
+
+function limpiarFormulario(){
+    [
+        "pId","pNombre","pCodigo","pSubcategoria",
+        "pPrecio","pOferta","pDescripcion","pTallas","pColores"
+    ].forEach(id => $(id).value = "");
+
+    $("pCategoria").value = "Mujeres";
+    $("pDestacado").checked = false;
+    $("pDisponible").checked = true;
+    $("pFotos").value = "";
+
+    fotosNuevas.forEach(f => URL.revokeObjectURL(f.preview));
+
+    fotosNuevas = [];
+    fotosGuardadas = [];
+
+    $("previsualizacion").innerHTML = "";
+    $("fotosGuardadas").textContent = "";
+    $("tituloFormulario").textContent = "Agregar producto";
+}
+
+// ========================================
+// EDITAR PRODUCTO
+// ========================================
+
+function editarProducto(id){
+    const p = productos.find(x => x.id === id);
+    if(!p) return;
+
+    $("pId").value = p.id;
+    $("pNombre").value = p.nombre || "";
+    $("pCodigo").value = p.codigo || "";
+    $("pCategoria").value = p.categoria || "Mujeres";
+    $("pSubcategoria").value = p.subcategoria || "";
+    $("pPrecio").value = p.precio;
+    $("pOferta").value = p.oferta || "";
+    $("pDescripcion").value = p.descripcion || "";
+    $("pTallas").value = (p.tallas || []).join(", ");
+    $("pColores").value = (p.colores || []).join(", ");
+
+    $("pDestacado").checked = !!p.destacado;
+    $("pDisponible").checked = !!p.disponible;
+
+    fotosGuardadas = [...(p.fotos || [])];
+    fotosNuevas = [];
+
+    $("tituloFormulario").textContent = "Editar producto";
+
+    mostrarPrevisualizacion();
+    $("admin").scrollTo({top:0,behavior:"smooth"});
+}
+
+// ========================================
+// LISTAR ADMINISTRACIÓN
+// ========================================
+
+async function listarAdmin(){
+    const {data,error} = await db
+        .from("productos")
+        .select("*")
+        .order("created_at",{ascending:false});
+
+    if(error){
+        $("listaAdmin").textContent = error.message;
+        return;
+    }
+
+    const {data:imagenes,error:errorFotos} = await db
+        .from("producto_imagenes")
+        .select("*")
+        .order("orden",{ascending:true});
+
+    if(errorFotos){
+        $("listaAdmin").textContent = errorFotos.message;
+        return;
+    }
+
+    $("listaAdmin").innerHTML = (data || []).map(p => {
+        const foto = (imagenes || []).find(f => f.producto_id === p.id);
+
+        return `
+        <div class="adminlista">
+            <img src="${escapar(foto?.imagen_url || '')}" alt="">
+            <div>
+                <strong>${escapar(p.nombre)}</strong><br>
+                ${dinero(p.precio)}
+                ${p.disponible ? "" : " · No disponible"}
+            </div>
+            <div class="acciones">
+                <button onclick="editarProducto('${p.id}')">Editar</button>
+                <button onclick="eliminarProducto('${p.id}')"
+                        style="background:#a33">Borrar</button>
+            </div>
+        </div>`;
+    }).join("") || "Todavía no hay productos.";
+}
+
+// ========================================
+// ELIMINAR PRODUCTO
+// ========================================
+
+async function eliminarProducto(id){
+    if(!usuarioAdmin) return alert("Inicia sesión primero.");
+
+    if(!confirm("¿Eliminar este producto y todas sus fotografías?")) return;
+
+    try {
+        const {data:fotos,error:errorFotos} = await db
+            .from("producto_imagenes")
+            .select("storage_path")
+            .eq("producto_id",id);
+
+        if(errorFotos) throw errorFotos;
+
+        const rutas = (fotos || []).map(f => f.storage_path).filter(Boolean);
+
+        if(rutas.length){
+            const {error} = await db.storage
+                .from(BUCKET)
+                .remove(rutas);
+
+            if(error) throw error;
+        }
+
+        const {error} = await db
+            .from("productos")
+            .delete()
+            .eq("id",id);
+
+        if(error) throw error;
+
+        carrito = carrito.filter(x => x.id !== id);
+        guardarCarrito();
+
+        if($("pId").value === id) limpiarFormulario();
+
+        await cargarProductos();
+        await listarAdmin();
+
+        alert("Producto eliminado correctamente.");
+
+    } catch(error) {
+        console.error(error);
+        alert("No se pudo eliminar: " + error.message);
+    }
+}
+
+// ========================================
+// CERRAR MODALES
+// ========================================
+
+function cerrar(id){
+    $(id).style.display = "none";
+}
+
+["detalle","carrito"].forEach(id => {
+    $(id).addEventListener("click",e => {
+        if(e.target === $(id)) cerrar(id);
+    });
+});
+
+// ========================================
+// INICIAR TIENDA
+// ========================================
+
+// ========================================
+// CONTADOR DE VISITANTES
+// ========================================
+
+const VISITA_KEY = "estherImport_visita_v1";
+
+async function contarVisita(){
+    let nueva = true;
+
+    try {
+        if(localStorage.getItem(VISITA_KEY)) nueva = false;
+    } catch(e) {}
+
+    if(!nueva) return;
+
+    try {
+        const {error} = await db.rpc("registrar_visita",{p_nueva:true});
+
+        if(error) throw error;
+
+        try { localStorage.setItem(VISITA_KEY,"1"); } catch(e) {}
+    } catch(error) {
+        console.error(error);
+    }
+}
+
+// Solo el administrador puede leer el total (lo exige la base de datos).
+async function cargarVisitas(){
+    const {data,error} = await db
+        .from("contador_visitas")
+        .select("total")
+        .eq("id",1)
+        .maybeSingle();
+
+    $("contadorVisitas").textContent =
+        error || !data ? "—" : Number(data.total).toLocaleString("es-DO");
+}
+
+mostrarProductos();
+actualizarCarrito();
+cargarProductos();
+contarVisita();
+
+</script>
+</body>
+</html>
